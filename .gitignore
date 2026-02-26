@@ -1,0 +1,16 @@
+# Editor swap/backup files
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local Claude instructions
+CLAUDE.local.md
