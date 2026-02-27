@@ -119,10 +119,10 @@ precmd() {
 setopt PROMPT_SUBST
 
 if [[ -n "$PRODUCTION" ]]; then
-    PS1='${_prompt_exitcode}%K{red}%B%F{white} PRODUCTION %f%b%k %B%F{red}%n@%m%f%b:%F{75}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+    PS1='${_prompt_exitcode}%K{red}%B%F{white} PRODUCTION %f%b%k %(!.%B%F{red}.%F{242})%n%F{242}@%f%B%F{red}%m%f%b:%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
 %# '
 else
-    PS1='${_prompt_exitcode}%B%F{208}%n@%m%f%b:%F{75}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+    PS1='${_prompt_exitcode}%(!.%B%F{red}.%F{242})%n%F{242}@%f%B%F{208}%m%f%b:%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
 %# '
 fi
 
@@ -141,7 +141,7 @@ _zsh_plugin_dir="${${(%):-%x}:A:h}/plugins"
     source "$_zsh_plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 unset _zsh_plugin_dir
 
-[[ -o login ]] && command -v fastfetch &>/dev/null && fastfetch
+if [[ -o login ]] && command -v fastfetch &>/dev/null; then fastfetch; fi
 
 # Per-host overrides
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+if [[ -f ~/.zshrc.local ]]; then source ~/.zshrc.local; fi
