@@ -90,6 +90,12 @@ MODULES: list[Module] = [
             FileLink("config/gh/config.yml", ".config/gh/config.yml"),
         ],
     ),
+    Module(
+        name="fastfetch",
+        files=[
+            FileLink("config/fastfetch/config.jsonc", ".config/fastfetch/config.jsonc"),
+        ],
+    ),
 ]
 
 MODULES_BY_NAME = {m.name: m for m in MODULES}
