@@ -5,7 +5,7 @@ Personal dotfiles managed with a Python installer and Makefile.
 ## Setup
 
 ```sh
-git clone ssh://git@forgejo.krzaq.cc/krzaq/dotfiles.git ~/code/misc/dotfiles
+git clone --recursive ssh://git@forgejo.krzaq.cc/krzaq/dotfiles.git ~/code/misc/dotfiles
 cd ~/code/misc/dotfiles
 make bootstrap-uv   # if uv is not installed
 make install
@@ -20,13 +20,14 @@ make install-ssh     # install a single module
 make uninstall       # remove symlinks, restore originals
 make dry-run         # show what install would do
 make list            # list available modules
+make submodules      # init/update git submodules
 ```
 
 ## Modules
 
 | Module | What it manages |
 |--------|----------------|
-| zsh    | .zshrc, .zprofile, .zshenv |
+| zsh    | .zshrc, .zprofile, .zshenv, plugins (submodules) |
 | vim    | .vimrc |
 | git    | ~/.config/git/config (shared settings only) |
 | ssh    | config, authorized_keys, hosts/, local/ |

@@ -2,7 +2,7 @@ DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
-.PHONY: help install uninstall dry-run list \
+.PHONY: help install uninstall dry-run list submodules \
         install-zsh install-vim install-git install-ssh install-gh \
         bootstrap-uv bootstrap-rbenv
 
@@ -36,6 +36,9 @@ install-ssh: ## Install ssh config
 
 install-gh: ## Install gh config
 	$(INSTALL) -m gh
+
+submodules: ## Init/update git submodules (zsh plugins)
+	git submodule update --init --recursive
 
 bootstrap-uv: ## Install uv (Python package manager)
 	bash $(DOTFILES_DIR)bootstrap/uv.sh
