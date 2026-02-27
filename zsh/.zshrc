@@ -75,15 +75,71 @@ alias mc='mc -u -X'
 force_color_prompt=yes
 # End of lines added by compinstall
 
-export PS1="%{%B${fg[green]}%}[%{${fg[blue]}%}%y:%n@%m:%~%{${fg[green]}%}]%b%(1j,%{${fg[green]}%}<%{%B${fg[blue]}%}%j%{%b${fg[green]}%}>%b,)%(?,,%{${fg[red]}%}{%B%?%{%b${fg[red]}%}}%b)%# "
+# --- Prompt ---
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:*' check-for-changes true
+zstyle ':vcs_info:*' stagedstr '+'
+zstyle ':vcs_info:*' unstagedstr '*'
+zstyle ':vcs_info:git:*' formats '%b%u%c'
+zstyle ':vcs_info:git:*' actionformats '%b|%a%u%c'
 
-export PS2="%{${fg[red]}%}%_> %{${fg[white]}%}"
-export RPS2="%{${fg[red]}%} <%{${fg[white]}%}"
+typeset -gA _prompt_signals=(
+    [129]=HUP  [130]=INT   [131]=QUIT [132]=ILL
+    [134]=ABRT [135]=BUS   [136]=FPE  [137]=KILL
+    [139]=SEGV [141]=PIPE  [143]=TERM
+)
+
+precmd() {
+    local last_exit=$?
+    vcs_info
+
+    if (( last_exit != 0 )); then
+        local sig=""
+        if (( last_exit == 127 )); then
+            sig=":NOTFOUND"
+        elif (( last_exit > 128 )) && [[ -n "${_prompt_signals[$last_exit]}" ]]; then
+            sig=":${_prompt_signals[$last_exit]}"
+        fi
+        _prompt_exitcode="%B%F{red}{${last_exit}${sig}}%f%b"$'\n'
+    else
+        _prompt_exitcode=$'\n'
+    fi
+
+    _prompt_git=""
+    if [[ -n "$vcs_info_msg_0_" ]]; then
+        if [[ "$vcs_info_msg_0_" == *'*'* || "$vcs_info_msg_0_" == *'+'* ]]; then
+            _prompt_git=" %F{yellow}${vcs_info_msg_0_}%f"
+        else
+            _prompt_git=" %F{green}${vcs_info_msg_0_}%f"
+        fi
+    fi
+}
+
+setopt PROMPT_SUBST
+
+if [[ -n "$PRODUCTION" ]]; then
+    PS1='${_prompt_exitcode}%K{red}%B%F{white} PRODUCTION %f%b%k %B%F{red}%n@%m%f%b:%F{75}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+%# '
+else
+    PS1='${_prompt_exitcode}%B%F{208}%n@%m%f%b:%F{75}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+%# '
+fi
+
+PS2='%F{red}%_> %f'
 
 if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]] && command -v dbus-launch &>/dev/null; then
     eval "$(dbus-launch --sh-syntax)"
 fi
 export GPG_TTY=$(tty)
+
+# Plugins (submodules in the dotfiles repo, found via symlink resolution)
+_zsh_plugin_dir="${${(%):-%x}:A:h}/plugins"
+[[ -f "$_zsh_plugin_dir/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && \
+    source "$_zsh_plugin_dir/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -f "$_zsh_plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && \
+    source "$_zsh_plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+unset _zsh_plugin_dir
 
 [[ -o login ]] && command -v fastfetch &>/dev/null && fastfetch
 
