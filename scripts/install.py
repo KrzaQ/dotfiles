@@ -280,8 +280,12 @@ def execute_plan(plan: list[tuple[str, list[Action]]], *, backup_dir: Path, mani
                 case ActionKind.RESTORE:
                     a.target.unlink()
                     a.backup_path.rename(a.target)
+                    manifest["backups"].pop(str(a.target), None)
                 case ActionKind.RMDIR:
                     a.target.rmdir()
+                    created = manifest["created_dirs"]
+                    if str(a.target) in created:
+                        created.remove(str(a.target))
 
 
 # ── Manifest ────────────────────────────────────────────────────────
@@ -294,7 +298,19 @@ def load_manifest(backup_dir: Path) -> dict:
     return {"backups": {}, "created_dirs": []}
 
 
+def manifest_is_empty(manifest: dict) -> bool:
+    return not manifest["backups"] and not manifest["created_dirs"]
+
+
 def save_manifest(backup_dir: Path, manifest: dict) -> None:
+    if manifest_is_empty(manifest):
+        manifest_path = backup_dir / MANIFEST_NAME
+        if manifest_path.exists():
+            manifest_path.unlink()
+        if backup_dir.exists() and not any(backup_dir.iterdir()):
+            backup_dir.rmdir()
+            print(f"Removed empty backup directory {backup_dir}")
+        return
     backup_dir.mkdir(parents=True, exist_ok=True)
     (backup_dir / MANIFEST_NAME).write_text(json.dumps(manifest, indent=2) + "\n")
 
