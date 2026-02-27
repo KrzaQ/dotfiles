@@ -1,7 +1,8 @@
 export LC_CTYPE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export EDITOR=vim
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+# SSH_AUTH_SOCK is set per-host in .zprofile.local
+# (e.g. systemd agent socket, WSL interop, or left to SSH forwarding)
 
 export GTEST_COLOR=1
 
