@@ -15,6 +15,8 @@ from pathlib import Path
 DOTFILES_DIR = Path(__file__).resolve().parent.parent
 HOME = Path.home()
 MANIFEST_NAME = "manifest.json"
+BLOCK_BEGIN = "# >>> kq dotfiles >>>"
+BLOCK_END = "# <<< kq dotfiles <<<"
 
 
 # ── Module definitions ──────────────────────────────────────────────
@@ -39,11 +41,18 @@ class DirCreate:
 
 
 @dataclass
+class ManagedBlock:
+    source: str  # relative to DOTFILES_DIR; content goes between markers
+    target: str  # relative to HOME
+
+
+@dataclass
 class Module:
     name: str
     files: list[FileLink] = field(default_factory=list)
     dirs: list[DirLink] = field(default_factory=list)
     creates: list[DirCreate] = field(default_factory=list)
+    blocks: list[ManagedBlock] = field(default_factory=list)
 
 
 MODULES: list[Module] = [
@@ -115,6 +124,12 @@ class ActionKind(Enum):
     RESTORE = auto()
     KEEP = auto()
     RMDIR = auto()
+    BLOCK_CREATE = auto()
+    BLOCK_APPEND = auto()
+    BLOCK_UPDATE = auto()
+    BLOCK_STRIP = auto()
+    BLOCK_STRIP_AND_RM = auto()
+    BLOCK_CORRUPT = auto()
 
 
 @dataclass
@@ -190,6 +205,92 @@ def plan_uninstall_dir(target: Path) -> Action | None:
     return Action(ActionKind.RMDIR, target)
 
 
+def _read_block_content(source: Path) -> str:
+    """Source file content that will live between the markers (no trailing newline)."""
+    return source.read_text().rstrip("\n")
+
+
+def _find_block(text: str) -> tuple[int, int] | None | str:
+    """Locate the managed block in text.
+
+    Returns (begin_idx, end_idx) inclusive line indices, None if no markers found,
+    or the string "corrupt" if exactly one marker is present (or markers out of order).
+    """
+    lines = text.splitlines()
+    begin = end = -1
+    for i, line in enumerate(lines):
+        if line == BLOCK_BEGIN:
+            begin = i
+        elif line == BLOCK_END:
+            end = i
+    if begin == -1 and end == -1:
+        return None
+    if begin == -1 or end == -1 or begin > end:
+        return "corrupt"
+    return (begin, end)
+
+
+def _strip_block(text: str) -> str:
+    """Return text with the managed block removed.
+
+    Also removes a single preceding blank line if present, to avoid growing gaps
+    on repeated install/uninstall cycles.
+    """
+    found = _find_block(text)
+    if not isinstance(found, tuple):
+        return text
+    begin, end = found
+    lines = text.splitlines(keepends=True)
+    cut_start = begin
+    if cut_start > 0 and lines[cut_start - 1].strip() == "":
+        cut_start -= 1
+    return "".join(lines[:cut_start] + lines[end + 1:])
+
+
+def _format_block(content: str) -> str:
+    """Wrap content with markers. No trailing newline."""
+    return f"{BLOCK_BEGIN}\n{content}\n{BLOCK_END}"
+
+
+def plan_managed_block(mb: ManagedBlock) -> Action:
+    source = resolve_source(mb.source)
+    target = resolve_target(mb.target)
+    if not source.exists():
+        return Action(ActionKind.SKIP, target, message=f"source {source} not found")
+    if not target.exists():
+        return Action(ActionKind.BLOCK_CREATE, target, source=source)
+    existing = target.read_text()
+    found = _find_block(existing)
+    if found is None:
+        return Action(ActionKind.BLOCK_APPEND, target, source=source)
+    if found == "corrupt":
+        return Action(ActionKind.BLOCK_CORRUPT, target,
+                      message="exactly one marker found; refusing to edit")
+    begin, end = found
+    current_block = "\n".join(existing.splitlines()[begin:end + 1])
+    expected_block = _format_block(_read_block_content(source))
+    if current_block == expected_block:
+        return Action(ActionKind.OK, target)
+    return Action(ActionKind.BLOCK_UPDATE, target, source=source)
+
+
+def plan_uninstall_managed_block(mb: ManagedBlock) -> Action | None:
+    target = resolve_target(mb.target)
+    if not target.exists():
+        return None
+    existing = target.read_text()
+    found = _find_block(existing)
+    if found is None:
+        return None
+    if found == "corrupt":
+        return Action(ActionKind.BLOCK_CORRUPT, target,
+                      message="exactly one marker found; refusing to edit")
+    remaining = _strip_block(existing)
+    if remaining.strip() == "":
+        return Action(ActionKind.BLOCK_STRIP_AND_RM, target)
+    return Action(ActionKind.BLOCK_STRIP, target)
+
+
 def plan_install(modules: list[Module], backup_dir: Path, *, force: bool) -> list[tuple[str, list[Action]]]:
     plan = []
     for module in modules:
@@ -202,6 +303,8 @@ def plan_install(modules: list[Module], backup_dir: Path, *, force: bool) -> lis
                                      backup_dir, force=force, is_dir=True))
         for c in module.creates:
             actions.append(plan_mkdir(resolve_target(c.target), c.mode))
+        for b in module.blocks:
+            actions.append(plan_managed_block(b))
         plan.append((module.name, actions))
     return plan
 
@@ -216,6 +319,10 @@ def plan_uninstall(modules: list[Module], manifest: dict) -> list[tuple[str, lis
                 actions.append(a)
         for d in module.dirs:
             a = plan_uninstall_link(resolve_source(d.source), resolve_target(d.target), manifest)
+            if a:
+                actions.append(a)
+        for b in module.blocks:
+            a = plan_uninstall_managed_block(b)
             if a:
                 actions.append(a)
         for c in module.creates:
@@ -255,9 +362,29 @@ def print_plan(plan: list[tuple[str, list[Action]]]) -> None:
                     print(f"  KEEP    {a.target}/ ({a.message})")
                 case ActionKind.RMDIR:
                     print(f"  RMDIR   {a.target}/")
+                case ActionKind.BLOCK_CREATE:
+                    print(f"  CREATE  {a.target} (managed block, new file)")
+                case ActionKind.BLOCK_APPEND:
+                    print(f"  APPEND  {a.target} (managed block)")
+                case ActionKind.BLOCK_UPDATE:
+                    print(f"  UPDATE  {a.target} (managed block)")
+                case ActionKind.BLOCK_STRIP:
+                    print(f"  STRIP   {a.target} (managed block)")
+                case ActionKind.BLOCK_STRIP_AND_RM:
+                    print(f"  STRIP   {a.target} (managed block) + RM (empty)")
+                case ActionKind.BLOCK_CORRUPT:
+                    print(f"  ERROR   {a.target} ({a.message})")
 
 
 # ── Execution ───────────────────────────────────────────────────────
+
+
+def _atomic_write(target: Path, content: str) -> None:
+    """Write content to target via a temp file in the same directory, then rename."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(target.name + ".tmp")
+    tmp.write_text(content)
+    tmp.rename(target)
 
 
 def execute_plan(plan: list[tuple[str, list[Action]]], *, backup_dir: Path, manifest: dict) -> None:
@@ -292,6 +419,27 @@ def execute_plan(plan: list[tuple[str, list[Action]]], *, backup_dir: Path, mani
                     created = manifest["created_dirs"]
                     if str(a.target) in created:
                         created.remove(str(a.target))
+                case ActionKind.BLOCK_CREATE:
+                    content = _read_block_content(a.source)
+                    _atomic_write(a.target, _format_block(content) + "\n")
+                case ActionKind.BLOCK_APPEND:
+                    existing = a.target.read_text()
+                    content = _read_block_content(a.source)
+                    sep = "" if existing.endswith("\n") else "\n"
+                    _atomic_write(a.target, existing + sep + "\n" + _format_block(content) + "\n")
+                case ActionKind.BLOCK_UPDATE:
+                    existing = a.target.read_text()
+                    found = _find_block(existing)
+                    assert isinstance(found, tuple)
+                    begin, end = found
+                    lines = existing.splitlines(keepends=True)
+                    content = _read_block_content(a.source)
+                    new_lines = (_format_block(content) + "\n").splitlines(keepends=True)
+                    _atomic_write(a.target, "".join(lines[:begin] + new_lines + lines[end + 1:]))
+                case ActionKind.BLOCK_STRIP:
+                    _atomic_write(a.target, _strip_block(a.target.read_text()))
+                case ActionKind.BLOCK_STRIP_AND_RM:
+                    a.target.unlink()
 
 
 # ── Manifest ────────────────────────────────────────────────────────
@@ -329,6 +477,11 @@ def needs_backup(plan: list[tuple[str, list[Action]]]) -> bool:
                for _, actions in plan for a in actions)
 
 
+def has_corruption(plan: list[tuple[str, list[Action]]]) -> bool:
+    return any(a.kind == ActionKind.BLOCK_CORRUPT
+               for _, actions in plan for a in actions)
+
+
 def backup_dir_nonempty(backup_dir: Path) -> bool:
     if not backup_dir.exists():
         return False
@@ -359,7 +512,10 @@ def main() -> None:
         print("Available modules:")
         for m in MODULES:
             links = len(m.files) + len(m.dirs)
-            print(f"  {m.name:12s} ({links} link(s))")
+            parts = [f"{links} link(s)"]
+            if m.blocks:
+                parts.append(f"{len(m.blocks)} block(s)")
+            print(f"  {m.name:12s} ({', '.join(parts)})")
         return
 
     # Resolve which modules to operate on
@@ -384,18 +540,27 @@ def main() -> None:
         actions = plan_install(selected, backup_dir, force=args.force)
 
     # Phase 2: validate
-    abort = False
+    errors: list[str] = []
     if not args.uninstall and needs_backup(actions) and backup_dir_nonempty(backup_dir):
-        abort = True
+        errors.append(
+            f"backup directory {backup_dir} is not empty.\n"
+            "  Run 'make uninstall' first, or remove it manually."
+        )
+    if has_corruption(actions):
+        errors.append(
+            "managed-block markers are corrupted in target file(s).\n"
+            "  Inspect the file(s) marked ERROR above and fix manually before re-running."
+        )
 
     # Phase 3: display
     if args.dry_run:
         print("(dry run — no changes will be made)")
     print_plan(actions)
 
-    if abort:
-        print(f"\nError: backup directory {backup_dir} is not empty.", file=sys.stderr)
-        print("Run 'make uninstall' first, or remove it manually.", file=sys.stderr)
+    if errors:
+        print(file=sys.stderr)
+        for msg in errors:
+            print(f"Error: {msg}", file=sys.stderr)
         sys.exit(1)
 
     # Phase 4: execute
