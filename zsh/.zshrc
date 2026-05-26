@@ -141,6 +141,17 @@ _zsh_plugin_dir="${${(%):-%x}:A:h}/plugins"
     source "$_zsh_plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 unset _zsh_plugin_dir
 
+tm() {
+    local name
+    if [[ -f .tmux-session ]]; then
+        name=$(head -n1 .tmux-session | tr -d '[:space:]')
+    fi
+    if [[ -z "$name" ]]; then
+        name=$(basename "$PWD")
+    fi
+    tmux new-session -t "$name"
+}
+
 if [[ -o login ]] && command -v fastfetch &>/dev/null; then fastfetch; fi
 
 # Per-host overrides
