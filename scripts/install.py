@@ -79,6 +79,9 @@ MODULES: list[Module] = [
         files=[
             FileLink("git/config", ".config/git/config"),
         ],
+        blocks=[
+            ManagedBlock("git/ignore", ".config/git/ignore"),
+        ],
     ),
     Module(
         name="ssh",
