@@ -98,6 +98,16 @@ MODULES: list[Module] = [
         ],
     ),
     Module(
+        name="ssh-agent",
+        default=False,
+        files=[
+            FileLink("config/systemd/ssh-agent.service", ".config/systemd/user/ssh-agent.service"),
+        ],
+        blocks=[
+            ManagedBlock("zsh/ssh-agent.zprofile", ".zprofile.local"),
+        ],
+    ),
+    Module(
         name="gh",
         files=[
             FileLink("config/gh/config.yml", ".config/gh/config.yml"),

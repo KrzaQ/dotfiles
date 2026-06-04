@@ -3,7 +3,7 @@ UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules \
-        install-zsh install-vim install-git install-ssh install-gh install-fastfetch \
+        install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch \
         bootstrap-uv bootstrap-rbenv
 
 help: ## Show available targets
@@ -33,6 +33,12 @@ install-git: ## Install git config
 
 install-ssh: ## Install ssh config
 	$(INSTALL) -m ssh
+
+install-ssh-agent: ## Install local ssh-agent service (opt-in, prefers it over forwarded agents)
+	$(INSTALL) -m ssh-agent
+	systemctl --user daemon-reload
+	systemctl --user enable --now ssh-agent.service
+	loginctl enable-linger
 
 install-gh: ## Install gh config
 	$(INSTALL) -m gh
