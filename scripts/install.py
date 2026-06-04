@@ -53,6 +53,7 @@ class Module:
     dirs: list[DirLink] = field(default_factory=list)
     creates: list[DirCreate] = field(default_factory=list)
     blocks: list[ManagedBlock] = field(default_factory=list)
+    default: bool = True
 
 
 MODULES: list[Module] = [
@@ -518,6 +519,8 @@ def main() -> None:
             parts = [f"{links} link(s)"]
             if m.blocks:
                 parts.append(f"{len(m.blocks)} block(s)")
+            if not m.default:
+                parts.append("opt-in")
             print(f"  {m.name:12s} ({', '.join(parts)})")
         return
 
@@ -530,8 +533,10 @@ def main() -> None:
                 print(f"Available: {', '.join(MODULES_BY_NAME)}", file=sys.stderr)
                 sys.exit(1)
             selected.append(MODULES_BY_NAME[name])
-    else:
+    elif args.uninstall:
         selected = MODULES
+    else:
+        selected = [m for m in MODULES if m.default]
 
     backup_dir = Path(args.backup_dir).expanduser()
     manifest = load_manifest(backup_dir)
