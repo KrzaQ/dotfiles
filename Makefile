@@ -3,7 +3,7 @@ UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules \
-        install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch \
+        install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch install-tmux \
         bootstrap-uv bootstrap-rbenv
 
 help: ## Show available targets
@@ -45,6 +45,9 @@ install-gh: ## Install gh config
 
 install-fastfetch: ## Install fastfetch config
 	$(INSTALL) -m fastfetch
+
+install-tmux: ## Install tmux config
+	$(INSTALL) -m tmux
 
 submodules: ## Init/update git submodules (zsh plugins)
 	git submodule update --init --recursive

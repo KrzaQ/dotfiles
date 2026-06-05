@@ -119,6 +119,12 @@ MODULES: list[Module] = [
             FileLink("config/fastfetch/config.jsonc", ".config/fastfetch/config.jsonc"),
         ],
     ),
+    Module(
+        name="tmux",
+        files=[
+            FileLink("config/tmux/tmux.conf", ".config/tmux/tmux.conf"),
+        ],
+    ),
 ]
 
 MODULES_BY_NAME = {m.name: m for m in MODULES}
