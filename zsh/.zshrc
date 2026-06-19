@@ -154,5 +154,10 @@ tm() {
 
 if [[ -o login ]] && command -v fastfetch &>/dev/null; then fastfetch; fi
 
+# direnv: per-directory environment loading (only if installed)
+if command -v direnv &>/dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
 # Per-host overrides
 if [[ -f ~/.zshrc.local ]]; then source ~/.zshrc.local; fi
