@@ -142,14 +142,40 @@ _zsh_plugin_dir="${${(%):-%x}:A:h}/plugins"
 unset _zsh_plugin_dir
 
 tm() {
+    local takeover=1
+    while (( $# )); do
+        case "$1" in
+            -a|--attach) takeover=0 ;;
+            -h|--help)
+                cat <<'EOF'
+tm — attach to (or create) the tmux session for the current directory.
+
+Session name: first line of ./.tmux-session, else basename of $PWD.
+
+Usage: tm [-a|--attach] [-h|--help]
+  (default)      take over: attach and detach any other client
+  -a, --attach   share: attach without detaching other clients
+  -h, --help     show this help
+EOF
+                return 0 ;;
+            *) print -u2 "tm: unknown option: $1"; return 2 ;;
+        esac
+        shift
+    done
+
     local name
-    if [[ -f .tmux-session ]]; then
-        name=$(head -n1 .tmux-session | tr -d '[:space:]')
+    [[ -f .tmux-session ]] && name=$(head -n1 .tmux-session | tr -d '[:space:]')
+    [[ -z "$name" ]] && name=$(basename "$PWD")
+
+    if tmux has-session -t "=$name" 2>/dev/null; then
+        if (( takeover )); then
+            tmux attach-session -d -t "=$name"
+        else
+            tmux attach-session -t "=$name"
+        fi
+    else
+        tmux new-session -s "$name"
     fi
-    if [[ -z "$name" ]]; then
-        name=$(basename "$PWD")
-    fi
-    tmux new-session -t "$name"
 }
 
 if [[ -o login ]] && command -v fastfetch &>/dev/null; then fastfetch; fi
