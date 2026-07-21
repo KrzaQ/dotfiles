@@ -118,17 +118,26 @@ precmd() {
 
 setopt PROMPT_SUBST
 
+# Context badges — independent, so PRODUCTION and LIM can show at once.
+# ($LIMES_VERSION is set by the limes sandbox; $PRODUCTION per-host in .zprofile.local.)
+_prompt_badges=''
+[[ -n "$PRODUCTION"    ]] && _prompt_badges+='%K{red}%B%F{white} PRODUCTION %f%b%k '
+[[ -n "$LIMES_VERSION" ]] && _prompt_badges+='%B%F{208}LIM%f%b '
+
+# Hostname is red under PRODUCTION, orange otherwise (driven by PRODUCTION alone).
 if [[ -n "$PRODUCTION" ]]; then
-    PS1='${_prompt_exitcode}%K{red}%B%F{white} PRODUCTION %f%b%k %(!.%B%F{red}.%F{242})%n%F{242}@%f%B%F{red}%m%f%b:%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
-%# '
+    _prompt_host='%B%F{red}%m%f%b'
 else
-    PS1='${_prompt_exitcode}%(!.%B%F{red}.%F{242})%n%F{242}@%f%B%F{208}%m%f%b:%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
-%# '
+    _prompt_host='%B%F{208}%m%f%b'
 fi
+
+PS1='${_prompt_exitcode}'"${_prompt_badges}"'%(!.%B%F{red}.%F{242})%n%F{242}@%f'"${_prompt_host}"':%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+%# '
 
 PS2='%F{red}%_> %f'
 
-if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]] && command -v dbus-launch &>/dev/null; then
+# Not in a limes sandbox: no session bus is needed there (ephemeral, single-shell).
+if [[ -z "$LIMES_VERSION" ]] && [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]] && command -v dbus-launch &>/dev/null; then
     eval "$(dbus-launch --sh-syntax)"
 fi
 export GPG_TTY=$(tty)
