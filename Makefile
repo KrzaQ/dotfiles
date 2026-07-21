@@ -1,4 +1,5 @@
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+UNAME_S := $(shell uname -s)
 UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
@@ -61,8 +62,15 @@ bootstrap-uv: ## Install uv (Python package manager)
 bootstrap-rbenv: ## Install rbenv (Ruby version manager)
 	bash $(DOTFILES_DIR)bootstrap/rbenv.sh
 
-bootstrap-limes: ## Full limes setup (prereqs + binary + config + daemon)
+bootstrap-limes: ## Full limes setup (binary + config; on Linux also prereqs + daemon)
 	bash $(DOTFILES_DIR)bootstrap/limes.sh
 	$(INSTALL) -m limes
 	bash $(DOTFILES_DIR)bootstrap/rootless-docker.sh
+# `lim bootstrap` provisions the rootless daemon and image, so it is Linux-only and errors
+# out elsewhere. The Seatbelt backend needs no provisioning at all, so `doctor` is both the
+# right terminating step and the only "did this work" signal macOS has.
+ifeq ($(UNAME_S),Linux)
 	@lim=$$(command -v lim || echo "$$HOME/.cargo/bin/lim"); "$$lim" bootstrap
+else
+	@lim=$$(command -v lim || echo "$$HOME/.cargo/bin/lim"); "$$lim" doctor
+endif

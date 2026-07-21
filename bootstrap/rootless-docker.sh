@@ -8,6 +8,14 @@ set -euo pipefail
 # dockerd-rootless.sh, everything here is official-repo only -- no AUR on Arch, no
 # docker-ce-rootless-extras on Debian/Ubuntu.
 
+# macOS uses limes' Seatbelt backend, which has no daemon, no image and no privileged
+# prerequisites -- `lim` is ready as soon as the binary exists. Bail before the sudo prompt
+# below, so a direct invocation here doesn't ask for a password to do nothing.
+if [[ "$(uname -s)" != Linux ]]; then
+    echo "rootless-docker prerequisites are Linux-only; $(uname -s) uses the Seatbelt backend. Skipping."
+    exit 0
+fi
+
 user="$(id -un)"
 apparmor_profile=/etc/apparmor.d/usr.bin.rootlesskit
 
