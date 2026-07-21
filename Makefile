@@ -4,7 +4,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules \
         install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch install-tmux \
-        bootstrap-uv bootstrap-rbenv
+        bootstrap-uv bootstrap-rbenv bootstrap-limes
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -57,3 +57,6 @@ bootstrap-uv: ## Install uv (Python package manager)
 
 bootstrap-rbenv: ## Install rbenv (Ruby version manager)
 	bash $(DOTFILES_DIR)bootstrap/rbenv.sh
+
+bootstrap-limes: ## Install limes sandbox tool (lim)
+	bash $(DOTFILES_DIR)bootstrap/limes.sh
