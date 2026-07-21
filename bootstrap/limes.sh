@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Installs `lim` (the limes host-mirroring sandbox). limes lives in its own repo,
-# not in dotfiles — this hook just builds/installs the binary and points you at
-# `lim bootstrap` for the one-time host (rootless Docker) setup.
+# not in dotfiles — this hook just builds/installs the binary. `make bootstrap-limes`
+# chains the rest (prereqs, config drop-in, `lim bootstrap`).
 
 if command -v lim &>/dev/null; then
     echo "lim is already installed: $(lim --version)"
@@ -25,8 +25,4 @@ fi
 
 echo "Installing lim from $REPO..."
 cargo install --path "$REPO"
-
-echo
-echo "lim installed. Next:"
-echo "  lim bootstrap   # set up the rootless daemon + build the image"
-echo "  lim doctor      # verify the installation"
+echo "lim installed."

@@ -61,5 +61,8 @@ bootstrap-uv: ## Install uv (Python package manager)
 bootstrap-rbenv: ## Install rbenv (Ruby version manager)
 	bash $(DOTFILES_DIR)bootstrap/rbenv.sh
 
-bootstrap-limes: ## Install limes sandbox tool (lim)
+bootstrap-limes: ## Full limes setup (prereqs + binary + config + daemon)
 	bash $(DOTFILES_DIR)bootstrap/limes.sh
+	$(INSTALL) -m limes
+	bash $(DOTFILES_DIR)bootstrap/rootless-docker.sh
+	@lim=$$(command -v lim || echo "$$HOME/.cargo/bin/lim"); "$$lim" bootstrap
