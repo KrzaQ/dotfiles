@@ -1,0 +1,17 @@
+# limes config.d drop-in, installed by these dotfiles (module `limes`).
+#
+# Brings this repo's shell environment into a limes sandbox. The tracked rc files are
+# symlinks into the repo, and docker flattens symlinks on mount -- `link = "parent"`
+# tells limes to recreate the symlink inside and mount its target's parent dir (so the
+# zsh `plugins/` submodules come along and self-locating config resolves like the host).
+# The per-machine `.local` files are `optional` -- present on some machines, not others.
+#
+# Keys are home-relative, so this file is machine-independent (hence a plain symlink,
+# not generated). Hand-written mounts belong in ~/.config/limes/config.toml, not here.
+
+[mounts]
+"~/.zshrc"          = { mode = "ro", link = "parent" }
+"~/.zprofile"       = { mode = "ro", link = "parent" }
+"~/.zshenv"         = { mode = "ro", link = "parent" }
+"~/.zprofile.local" = { mode = "ro", optional = true }
+"~/.zshrc.local"    = { mode = "ro", optional = true }

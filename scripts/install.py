@@ -125,6 +125,13 @@ MODULES: list[Module] = [
             FileLink("config/tmux/tmux.conf", ".config/tmux/tmux.conf"),
         ],
     ),
+    Module(
+        name="limes",
+        default=False,
+        files=[
+            FileLink("config/limes/config.d/dotfiles.toml", ".config/limes/config.d/dotfiles.toml"),
+        ],
+    ),
 ]
 
 MODULES_BY_NAME = {m.name: m for m in MODULES}
