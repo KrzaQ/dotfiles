@@ -53,7 +53,7 @@ install-tmux: ## Install tmux config
 install-limes: ## Install limes sandbox config drop-in (opt-in)
 	$(INSTALL) -m limes
 
-submodules: ## Init/update git submodules (zsh plugins)
+submodules: ## Init/update git submodules (zsh plugins, limes)
 	git submodule update --init --recursive
 
 bootstrap-uv: ## Install uv (Python package manager)
