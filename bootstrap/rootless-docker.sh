@@ -63,7 +63,9 @@ $need_subid    && echo "  - subordinate uid/gid ranges for $user"
 $need_apparmor && echo "  - an AppArmor profile for rootlesskit (Ubuntu restricted userns)"
 echo
 
-if ! sudo -v; then
+# `sudo -v` authenticates to refresh the timestamp file and prompts even where NOPASSWD:ALL
+# applies, so probe with a real command first: passwordless sudo then stays passwordless.
+if ! sudo -n true 2>/dev/null && ! sudo -v; then
     {
         echo "This step needs root, but sudo isn't usable here (no passwordless sudo and"
         echo "no way to prompt). Run 'make bootstrap-limes' from an interactive shell, or"
