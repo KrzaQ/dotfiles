@@ -34,6 +34,10 @@
 # authenticated inside. Hiding it here would win (config beats agent detection) and break
 # the agent instead of protecting anything.
 
+# Not under ~/.config, so the mount above doesn't reach it. No `link = "parent"`: vim needs
+# nothing beside the file, and bootstrap-limes mounts the repo anyway.
+"~/.vimrc"          = "ro"
+
 "~/.zshrc"          = { mode = "ro", link = "parent" }
 "~/.zprofile"       = { mode = "ro", link = "parent" }
 "~/.zshenv"         = { mode = "ro", link = "parent" }
