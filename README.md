@@ -42,3 +42,6 @@ Machine-specific settings go in `.local` files (never committed):
 - `~/.zprofile.local` — sourced at end of .zprofile
 - `~/.gitconfig` — unmanaged, for identity and signing
 - `~/.ssh/local/*.conf` — SSH overrides, loaded before hosts/
+- `~/.config/limes/config.d/local-data-root.toml` — written by `make bootstrap-limes` on a
+  machine whose `$HOME` can't hold the docker data-root (an encrypted home); points limes
+  at `/var/lib/limes/$USER` instead
