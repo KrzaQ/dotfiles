@@ -63,6 +63,17 @@ $need_subid    && echo "  - subordinate uid/gid ranges for $user"
 $need_apparmor && echo "  - an AppArmor profile for rootlesskit (Ubuntu restricted userns)"
 echo
 
+# System-wide, root-owned changes deserve a look at the list above before they happen.
+# Gated on a TTY so unattended provisioning still runs straight through -- the -y /
+# --noconfirm below is about the package manager, not about consent.
+if [[ -t 0 ]]; then
+    read -rp "Install these now? [y/N] " reply
+    if [[ ! "$reply" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+        echo "Aborted; limes needs these to run." >&2
+        exit 1
+    fi
+fi
+
 # `sudo -v` authenticates to refresh the timestamp file and prompts even where NOPASSWD:ALL
 # applies, so probe with a real command first: passwordless sudo then stays passwordless.
 if ! sudo -n true 2>/dev/null && ! sudo -v; then
