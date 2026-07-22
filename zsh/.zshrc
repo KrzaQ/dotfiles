@@ -131,8 +131,21 @@ else
     _prompt_host='%B%F{208}%m%f%b'
 fi
 
-PS1='${_prompt_exitcode}'"${_prompt_badges}"'%(!.%B%F{red}.%F{242})%n%F{242}@%f'"${_prompt_host}"':%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
-%# '
+# In a limes sandbox uid 0 *is* the invoking user: the rootless daemon maps it there, so
+# the container has no root to warn about. Zsh's privileged tests (%(!.…) and %#) fire
+# anyway, painting the name red and the sigil # on every prompt -- a standing alarm for
+# the normal case, which is how one learns to ignore the real one. The LIM badge already
+# says where you are.
+if [[ -n "$LIMES_VERSION" ]]; then
+    _prompt_user='%F{242}%n'
+    _prompt_sigil='%%'
+else
+    _prompt_user='%(!.%B%F{red}.%F{242})%n'
+    _prompt_sigil='%#'
+fi
+
+PS1='${_prompt_exitcode}'"${_prompt_badges}${_prompt_user}"'%F{242}@%f'"${_prompt_host}"':%F{cyan}%~%f${_prompt_git}%(1j. %F{green}<%j>%f.)
+'"${_prompt_sigil} "
 
 PS2='%F{red}%_> %f'
 
