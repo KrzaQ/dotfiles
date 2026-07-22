@@ -1,6 +1,6 @@
 # limes config.d drop-in, installed by these dotfiles (module `limes`).
 #
-# Brings this repo's shell environment into a limes sandbox. The tracked rc files are
+# Brings this machine's user environment into a limes sandbox. The tracked rc files are
 # symlinks into the repo, and docker flattens symlinks on mount -- `link = "parent"`
 # tells limes to recreate the symlink inside and mount its target's parent dir (so the
 # zsh `plugins/` submodules come along and self-locating config resolves like the host).
@@ -10,6 +10,30 @@
 # not generated). Hand-written mounts belong in ~/.config/limes/config.toml, not here.
 
 [mounts]
+# Every tool's config, read-only: without it $HOME is a bare tmpfs and mc, htop, btop,
+# lazygit and friends start unconfigured -- or, like mc, fail outright trying to create
+# their own directory. Read-only means those that rewrite state on exit will complain;
+# limes is meant to grow an overlay mode for exactly this, and this entry becomes
+# `mode = "overlay"` when it does.
+"~/.config"         = "ro"
+
+# ...minus the dirs that hold live credentials, which the mount above would otherwise hand
+# to anything running in the sandbox. `hide` no-ops on machines where these are absent, so
+# the list can be the union across all of them.
+#
+# This is a blocklist and it will rot -- the next tool to stash a token under ~/.config
+# lands inside the sandbox and nothing says so. Re-scan occasionally rather than trusting
+# it; it buys back the obvious cases, not a guarantee.
+"~/.config/gh"        = "hide"   # GitHub OAuth token (hosts.yml)
+"~/.config/secrets"   = "hide"   # env files for MCP servers
+"~/.config/filezilla" = "hide"   # server passwords, barely obfuscated
+"~/.config/immich"    = "hide"   # auth.yml: API key + instance URL
+
+# Deliberately NOT hidden: ~/.config/cursor. Its auth.json is cursor-agent's credential,
+# the same category as ~/.claude -- limes detects the agent and mounts it rw so it runs
+# authenticated inside. Hiding it here would win (config beats agent detection) and break
+# the agent instead of protecting anything.
+
 "~/.zshrc"          = { mode = "ro", link = "parent" }
 "~/.zprofile"       = { mode = "ro", link = "parent" }
 "~/.zshenv"         = { mode = "ro", link = "parent" }
