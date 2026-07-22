@@ -29,11 +29,14 @@ if [[ ! -f "$REPO/Cargo.toml" ]]; then
     fi
 fi
 
-if ! command -v cargo &>/dev/null; then
-    echo "cargo not found — install rustup/cargo first, then re-run."
+# Same fallback the Makefile uses for `lim`: when bootstrap-rust just installed rustup in
+# this very run, cargo exists but is not on PATH yet.
+CARGO="$(command -v cargo || echo "$HOME/.cargo/bin/cargo")"
+if [[ ! -x "$CARGO" ]]; then
+    echo "cargo not found — run \`make bootstrap-rust\` first, then re-run."
     exit 1
 fi
 
 echo "Installing lim from $REPO..."
-cargo install --path "$REPO"
+"$CARGO" install --path "$REPO"
 echo "lim installed."

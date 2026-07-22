@@ -5,7 +5,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules \
         install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-limes
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -62,7 +62,12 @@ bootstrap-uv: ## Install uv (Python package manager)
 bootstrap-rbenv: ## Install rbenv (Ruby version manager)
 	bash $(DOTFILES_DIR)bootstrap/rbenv.sh
 
-bootstrap-limes: ## Full limes setup (binary + config; on Linux also prereqs + daemon)
+bootstrap-rust: ## Install Rust toolchain via rustup (ARGS=--update to update an existing one)
+	bash $(DOTFILES_DIR)bootstrap/rust.sh $(ARGS)
+
+# Depends on bootstrap-rust because lim is built with `cargo install`; rust.sh is a no-op
+# when a toolchain is already present.
+bootstrap-limes: bootstrap-rust ## Full limes setup (binary + config; on Linux also prereqs + daemon)
 	bash $(DOTFILES_DIR)bootstrap/limes.sh
 	$(INSTALL) -m limes
 	bash $(DOTFILES_DIR)bootstrap/rootless-docker.sh

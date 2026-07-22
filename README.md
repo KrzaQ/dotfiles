@@ -21,6 +21,7 @@ make uninstall       # remove symlinks, restore originals
 make dry-run         # show what install would do
 make list            # list available modules
 make submodules      # init/update git submodules
+make bootstrap-rust  # install the Rust toolchain (ARGS=--update to update it)
 ```
 
 ## Modules
