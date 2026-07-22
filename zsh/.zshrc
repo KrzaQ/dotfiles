@@ -5,6 +5,17 @@ SAVEHIST=100000
 setopt HIST_IGNORE_SPACE HIST_IGNORE_DUPS HIST_FIND_NO_DUPS
 setopt INC_APPEND_HISTORY EXTENDED_HISTORY HIST_EXPIRE_DUPS_FIRST
 
+# In a limes sandbox the history file is a bind-mounted *file*, and HIST_SAVE_BY_COPY (on
+# by default) saves by writing $HISTFILE.new and renaming it over the target -- a rename
+# onto a mount point, which the kernel refuses. Incremental appends work, so history still
+# flows; it is the rewrite on exit that fails, once per shell, with
+# "can't rename ~/.histfile.new to $HISTFILE". Writing in place has none of that problem.
+#
+# The option exists because a copy-then-rename never follows a symlinked or hardlinked
+# history file into somewhere it shouldn't write. Inside the sandbox the path is a mount
+# limes placed there, so there is no link to be tricked through.
+[[ -n "$LIMES_VERSION" ]] && unsetopt HIST_SAVE_BY_COPY
+
 bindkey -e
 
 typeset -g -A key
