@@ -44,3 +44,19 @@
 "~/.zshenv"         = { mode = "ro", link = "parent" }
 "~/.zprofile.local" = { mode = "ro", optional = true }
 "~/.zshrc.local"    = { mode = "ro", optional = true }
+
+[forward]
+# Forward the unrestricted gpg-agent socket, not the restricted one.
+#
+# The restricted socket confirms every use of a key through pinentry, and gpg-agent will
+# not trust a client-supplied tty for that prompt -- so with `pinentry-program
+# pinentry-tty` (what these machines use) there is nowhere to draw it and signing inside a
+# sandbox always fails with "Operation cancelled", cached passphrase or not. Verified from
+# the host too, over the same socket, on a real tty: same failure. The restricted socket
+# here does not mean "confirm each use", it means "never sign from a sandbox".
+#
+# The trade, stated plainly: while the passphrase is cached (6h here, 48h max), anything
+# running in a sandbox can sign as me without being asked. The key itself never enters --
+# it stays an oracle, one that stopped asking. Escapable per run with
+# `--no-gpg-unrestricted`.
+gpg_unrestricted = true
