@@ -60,3 +60,14 @@
 # it stays an oracle, one that stopped asking. Escapable per run with
 # `--no-gpg-unrestricted`.
 gpg_unrestricted = true
+
+[toolchains]
+# Mirror the host's rbenv and uv into the sandbox. Without these, $HOME being a tmpfs means
+# `ruby` inside is the system copy (not the rbenv-selected version) and `uv` is missing --
+# so a sandbox can't run the toolchain the host actually uses.
+#
+# ro: run the installed versions, don't mutate them from inside (installs land on tmpfs and
+# vanish, which is fine for a sandbox). optional: these live on some machines and not others,
+# and a non-optional toolchain that's absent is a hard error -- optional makes it a skip.
+uv    = { mode = "ro", optional = true }
+rbenv = { mode = "ro", optional = true }
