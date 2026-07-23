@@ -71,3 +71,5 @@ gpg_unrestricted = true
 # and a non-optional toolchain that's absent is a hard error -- optional makes it a skip.
 uv    = { mode = "ro", optional = true }
 rbenv = { mode = "ro", optional = true }
+rust  = { mode = "ro", optional = true }
+
