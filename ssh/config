@@ -4,4 +4,4 @@ Include hosts/*
 ServerAliveCountMax 2
 ServerAliveInterval 10
 TCPKeepAlive yes
-ForwardAgent yes
+ForwardAgent no
