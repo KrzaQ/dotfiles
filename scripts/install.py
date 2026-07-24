@@ -54,6 +54,14 @@ class Module:
     creates: list[DirCreate] = field(default_factory=list)
     blocks: list[ManagedBlock] = field(default_factory=list)
     default: bool = True
+    # Path (relative to DOTFILES_DIR) that must exist for this module to apply.
+    # Lets modules live in an unfetched submodule: absent means silently skipped
+    # in a default run, but named explicitly with -m it is a hard error.
+    requires: str | None = None
+
+    @property
+    def available(self) -> bool:
+        return self.requires is None or (DOTFILES_DIR / self.requires).is_dir()
 
 
 MODULES: list[Module] = [
@@ -88,13 +96,19 @@ MODULES: list[Module] = [
         name="ssh",
         files=[
             FileLink("ssh/config", ".ssh/config"),
-            FileLink("ssh/authorized_keys", ".ssh/authorized_keys"),
-        ],
-        dirs=[
-            DirLink("ssh/hosts", ".ssh/hosts"),
         ],
         creates=[
             DirCreate(".ssh/local", 0o700),
+        ],
+    ),
+    Module(
+        name="ssh-private",
+        requires="private/ssh",
+        files=[
+            FileLink("private/ssh/authorized_keys", ".ssh/authorized_keys"),
+        ],
+        dirs=[
+            DirLink("private/ssh/hosts", ".ssh/hosts"),
         ],
     ),
     Module(
@@ -544,6 +558,8 @@ def main() -> None:
                 parts.append(f"{len(m.blocks)} block(s)")
             if not m.default:
                 parts.append("opt-in")
+            if not m.available:
+                parts.append(f"unavailable: needs {m.requires}")
             print(f"  {m.name:12s} ({', '.join(parts)})")
         return
 
@@ -555,11 +571,21 @@ def main() -> None:
                 print(f"Error: unknown module '{name}'", file=sys.stderr)
                 print(f"Available: {', '.join(MODULES_BY_NAME)}", file=sys.stderr)
                 sys.exit(1)
-            selected.append(MODULES_BY_NAME[name])
+            module = MODULES_BY_NAME[name]
+            # Asking for it by name means you expect it, so missing is an error
+            # -- unlike a default run, where it is quietly skipped.
+            if not args.uninstall and not module.available:
+                print(f"Error: module '{name}' requires {module.requires}, which is missing.",
+                      file=sys.stderr)
+                print("Run `make get-private` to fetch it.", file=sys.stderr)
+                sys.exit(1)
+            selected.append(module)
     elif args.uninstall:
+        # Uninstall everything, including modules whose source is now gone --
+        # the links still need clearing.
         selected = MODULES
     else:
-        selected = [m for m in MODULES if m.default]
+        selected = [m for m in MODULES if m.default and m.available]
 
     backup_dir = Path(args.backup_dir).expanduser()
     manifest = load_manifest(backup_dir)

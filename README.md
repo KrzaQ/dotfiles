@@ -21,6 +21,7 @@ make uninstall       # remove symlinks, restore originals
 make dry-run         # show what install would do
 make list            # list available modules
 make submodules      # init/update git submodules
+make get-private     # fetch the private overlay (see below)
 make bootstrap-rust  # install the Rust toolchain (ARGS=--update to update it)
 ```
 
@@ -31,8 +32,25 @@ make bootstrap-rust  # install the Rust toolchain (ARGS=--update to update it)
 | zsh    | .zshrc, .zprofile, .zshenv, plugins (submodules) |
 | vim    | .vimrc |
 | git    | ~/.config/git/config (shared settings only) |
-| ssh    | config, authorized_keys, hosts/, local/ |
+| ssh    | ~/.ssh/config, local/ |
+| ssh-private | authorized_keys, hosts/ — from the private overlay, skipped when absent |
 | gh     | ~/.config/gh/config.yml |
+
+## Private overlay
+
+Host definitions and `authorized_keys` live in a separate private repo, wired in as a
+submodule at `private/`. It is marked `update = none`, so `git clone --recursive` and
+`make submodules` skip it — this repo clones and installs fine without any access to it,
+and `~/.ssh/config` tolerates the resulting empty `Include hosts/*` glob.
+
+```sh
+make get-private   # opt in: clones the overlay, then tracks its branch
+make install       # ssh-private is picked up automatically once present
+```
+
+The submodule's pinned SHA is deliberately **not** maintained (`ignore = all`); the overlay
+always tracks its own branch, so there is no gitlink bump to commit here on every host
+change. `make get-private` and `make submodules` both pull it forward.
 
 ## Per-host customization
 

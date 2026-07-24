@@ -3,8 +3,8 @@ UNAME_S := $(shell uname -s)
 UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
-.PHONY: help install uninstall dry-run list submodules \
-        install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
+.PHONY: help install uninstall dry-run list submodules get-private \
+        install-zsh install-vim install-git install-ssh install-ssh-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
         bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa
 
 help: ## Show available targets
@@ -54,8 +54,25 @@ install-tmux: ## Install tmux config
 install-limes: ## Install limes sandbox config drop-in (opt-in)
 	$(INSTALL) -m limes
 
-submodules: ## Init/update git submodules (zsh plugins, limes, sub-rosa)
-	git submodule update --init --recursive
+submodules: ## Init/update git submodules (private overlay too, when already fetched)
+	git -C $(DOTFILES_DIR) submodule update --init --recursive
+# `private` is marked `update = none`, so the line above skips it. Pull it directly
+# instead -- it tracks its branch rather than the (deliberately stale) pinned SHA.
+	@if [ -e $(DOTFILES_DIR)private/.git ]; then \
+		git -C $(DOTFILES_DIR)private pull --ff-only; \
+	fi
+
+get-private: ## Fetch the private overlay (ssh hosts + authorized_keys; needs forgejo access)
+	git -C $(DOTFILES_DIR) submodule update --init --checkout -- private
+# `submodule update` checks out the pinned SHA as a detached HEAD. The overlay tracks
+# its branch and is committed to directly, so land on master -- otherwise the pull below
+# has no upstream, and any host added here would be committed onto a detached HEAD.
+	git -C $(DOTFILES_DIR)private checkout --quiet master
+	git -C $(DOTFILES_DIR)private pull --ff-only
+	@echo "Fetched. Run 'make dry-run' then 'make install' to link it into ~/.ssh."
+
+install-ssh-private: ## Install private ssh hosts + authorized_keys (needs get-private)
+	$(INSTALL) -m ssh-private
 
 bootstrap-uv: ## Install uv (Python package manager)
 	bash $(DOTFILES_DIR)bootstrap/uv.sh

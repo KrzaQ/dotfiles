@@ -10,3 +10,12 @@
 [submodule "vendor/sub-rosa"]
 	path = vendor/sub-rosa
 	url = https://github.com/KrzaQ/sub-rosa.git
+[submodule "private"]
+	path = private
+	url = ssh://git@forgejo.krzaq.cc/krzaq/dotfiles-private.git
+	# Skipped by `clone --recursive` and `submodule update --init`, so a public
+	# clone works without access to forgejo. `make get-private` opts in.
+	update = none
+	# The pinned SHA is deliberately not maintained -- get-private tracks the
+	# branch instead -- so don't report the drift as a dirty worktree.
+	ignore = all
