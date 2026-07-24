@@ -7,3 +7,6 @@
 [submodule "vendor/limes"]
 	path = vendor/limes
 	url = https://github.com/KrzaQ/limes.git
+[submodule "vendor/sub-rosa"]
+	path = vendor/sub-rosa
+	url = https://github.com/KrzaQ/sub-rosa.git
