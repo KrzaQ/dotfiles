@@ -72,4 +72,8 @@ gpg_unrestricted = true
 uv    = { mode = "ro", optional = true }
 rbenv = { mode = "ro", optional = true }
 rust  = { mode = "ro", optional = true }
+# npm shares ~/.npm (the package + npx cache, always rw) so an `npx <server>` MCP inside reuses
+# the host's download instead of refetching per sandbox; nvm covers hosts whose node is nvm's.
+npm   = { mode = "ro", optional = true }
+nvm   = { mode = "ro", optional = true }
 
