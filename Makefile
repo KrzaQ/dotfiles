@@ -103,3 +103,6 @@ endif
 # `rosa serve` stay manual (they need a passphrase and a tty).
 bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) + seed config
 	bash $(DOTFILES_DIR)bootstrap/rosa.sh
+
+# Machine-local targets (e.g. `push` to my mirrors). Untracked; see Makefile.local.
+-include $(DOTFILES_DIR)Makefile.local
