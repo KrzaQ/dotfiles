@@ -5,7 +5,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules \
         install-zsh install-vim install-git install-ssh install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -54,7 +54,7 @@ install-tmux: ## Install tmux config
 install-limes: ## Install limes sandbox config drop-in (opt-in)
 	$(INSTALL) -m limes
 
-submodules: ## Init/update git submodules (zsh plugins, limes)
+submodules: ## Init/update git submodules (zsh plugins, limes, sub-rosa)
 	git submodule update --init --recursive
 
 bootstrap-uv: ## Install uv (Python package manager)
@@ -80,3 +80,9 @@ ifeq ($(UNAME_S),Linux)
 else
 	@lim=$$(command -v lim || echo "$$HOME/.cargo/bin/lim"); "$$lim" doctor
 endif
+
+# Depends on bootstrap-rust for the same reason bootstrap-limes does: rosa is built with
+# `cargo install`. Installs the binary and seeds ~/.config/rosa/config.toml; `rosa init` and
+# `rosa serve` stay manual (they need a passphrase and a tty).
+bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) + seed config
+	bash $(DOTFILES_DIR)bootstrap/rosa.sh
