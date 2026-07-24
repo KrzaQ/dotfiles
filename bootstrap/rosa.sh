@@ -100,7 +100,7 @@ fi
 cat <<'EOF'
 
 rosa is installed. What remains is manual — it needs your passphrase and a tty:
-  rosa init                  # create the empty encrypted store (~/.secrets.json.gpg)
+  rosa init                  # create the empty encrypted store (~/.config/rosa/secrets.json.gpg)
   rosa add <NAME>            # add a secret (value typed hidden)
   rosa serve                 # run the approval TUI in a dedicated tmux/screen window
 
