@@ -34,6 +34,13 @@
 # authenticated inside. Hiding it here would win (config beats agent detection) and break
 # the agent instead of protecting anything.
 
+# Also absent on purpose: ~/.config/rosa, which holds secrets.json.gpg and -- since sub-rosa
+# 0.2.0 moved the socket out of $XDG_RUNTIME_DIR -- rosa.sock beside it. The `~/.config` mount
+# above would otherwise hand the encrypted store to the sandbox, and with gpg_unrestricted
+# below it could be decrypted there without anyone being asked. limes hides that directory
+# itself now, precisely so this list isn't what stands between an agent and the store. An
+# entry here would be harmless but redundant; add one if the built-in ever goes away.
+
 # Not under ~/.config, so the mount above doesn't reach it. `link = "parent"` for the same
 # reason the zsh files below use it: a plain mount of a symlink is canonicalized, so the
 # repo file lands at its own path and ~/.vimrc -- the only path vim looks at -- stays empty.
