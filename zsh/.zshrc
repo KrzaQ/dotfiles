@@ -89,11 +89,9 @@ force_color_prompt=yes
 # --- Prompt ---
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:*' check-for-changes true
-zstyle ':vcs_info:*' stagedstr '+'
-zstyle ':vcs_info:*' unstagedstr '*'
-zstyle ':vcs_info:git:*' formats '%b%u%c'
-zstyle ':vcs_info:git:*' actionformats '%b|%a%u%c'
+zstyle ':vcs_info:*' check-for-changes false
+zstyle ':vcs_info:git:*' formats '%b'
+zstyle ':vcs_info:git:*' actionformats '%b|%a'
 
 typeset -gA _prompt_signals=(
     [129]=HUP  [130]=INT   [131]=QUIT [132]=ILL
@@ -119,8 +117,14 @@ precmd() {
 
     _prompt_git=""
     if [[ -n "$vcs_info_msg_0_" ]]; then
-        if [[ "$vcs_info_msg_0_" == *'*'* || "$vcs_info_msg_0_" == *'+'* ]]; then
-            _prompt_git=" %F{yellow}${vcs_info_msg_0_}%f"
+        local staged="" unstaged="" line
+        for line in ${(f)"$(git status --porcelain -uno 2>/dev/null)"}; do
+            [[ ${line[1]} != ' ' ]] && staged='+'
+            [[ ${line[2]} != ' ' ]] && unstaged='*'
+            [[ -n "$staged" && -n "$unstaged" ]] && break
+        done
+        if [[ -n "$staged$unstaged" ]]; then
+            _prompt_git=" %F{yellow}${vcs_info_msg_0_}${unstaged}${staged}%f"
         else
             _prompt_git=" %F{green}${vcs_info_msg_0_}%f"
         fi
