@@ -8,7 +8,17 @@ export GTEST_COLOR=1
 
 [[ -x ~/.rbenv/bin/rbenv ]] && eval "$(~/.rbenv/bin/rbenv init - --no-rehash zsh)"
 
-# ~/.local/bin is added in .zshenv, so non-login shells get it too.
+# Also added in .zshenv, for the non-login shells that never read this file -- but it has
+# to be repeated here, not just there. A login shell reads .zshenv, then /etc/zsh/zprofile,
+# then this file, and on Debian-family hosts the middle one does
+# `emulate sh -c 'source /etc/profile'` -- which *assigns* PATH instead of appending to it,
+# discarding whatever .zshenv put there. So the entry survives exactly in the shells you
+# never sit in, which is the confusing half of the bug this pairing fixes.
+#
+# Harmless where /etc/profile leaves PATH alone (arch, fedora): `typeset -U path` from
+# .zshenv keeps the leftmost occurrence, so the re-add is a no-op that does not reorder.
+[[ -d "$HOME/.local/bin" ]] && path+=("$HOME/.local/bin")
+
 [[ -d $HOME/.npm-global/bin ]] && export PATH=$PATH:$HOME/.npm-global/bin
 [[ -d $HOME/.bun/bin ]] && export PATH=$PATH:$HOME/.bun/bin
 [[ -d $HOME/.opencode/bin ]] && export PATH=$PATH:$HOME/.opencode/bin
