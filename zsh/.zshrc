@@ -215,6 +215,26 @@ EOF
     fi
 }
 
+# Clear terminal modes a dropped ssh or crashed full-screen app leaves set.
+# -a also exits the alternate screen; its cursor restore makes it opt-in.
+_term_unstick() {
+    [[ -t 0 ]] || return 0
+    local seq=$'\e[?1000l\e[?1002l\e[?1003l\e[?1004l\e[?1006l'
+    [[ "$1" == -a ]] && seq+=$'\e[?1049l'
+    print -n "$seq" > /dev/tty
+}
+
+ssh() {
+    command ssh "$@"
+    local rc=$?
+    (( rc == 255 )) && _term_unstick
+    return $rc
+}
+
+_term_unstick_widget() { _term_unstick -a; zle reset-prompt }
+zle -N _term_unstick_widget
+bindkey '^X^R' _term_unstick_widget
+
 if [[ -o login ]] && command -v fastfetch &>/dev/null; then fastfetch; fi
 
 # direnv: per-directory environment loading (only if installed)
