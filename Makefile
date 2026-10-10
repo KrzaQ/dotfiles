@@ -4,7 +4,7 @@ UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
-        install-zsh install-vim install-git install-ssh install-ssh-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
+        install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
         bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa
 
 help: ## Show available targets
@@ -73,6 +73,9 @@ get-private: ## Fetch the private overlay (ssh hosts + authorized_keys; needs fo
 
 install-ssh-private: ## Install private ssh hosts + authorized_keys (needs get-private)
 	$(INSTALL) -m ssh-private
+
+install-bin-private: ## Install private scripts into ~/.local/bin (needs get-private)
+	$(INSTALL) -m bin-private
 
 bootstrap-uv: ## Install uv (Python package manager)
 	bash $(DOTFILES_DIR)bootstrap/uv.sh

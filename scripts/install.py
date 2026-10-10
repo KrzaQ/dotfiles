@@ -112,6 +112,13 @@ MODULES: list[Module] = [
         ],
     ),
     Module(
+        name="bin-private",
+        requires="private/bin",
+        files=[
+            FileLink("private/bin/kp", ".local/bin/kp"),
+        ],
+    ),
+    Module(
         name="ssh-agent",
         default=False,
         files=[
