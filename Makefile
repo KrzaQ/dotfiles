@@ -62,14 +62,14 @@ submodules: ## Init/update git submodules (private overlay too, when already fet
 		git -C $(DOTFILES_DIR)private pull --ff-only; \
 	fi
 
-get-private: ## Fetch the private overlay (ssh hosts + authorized_keys; needs forgejo access)
+get-private: ## Fetch the private overlay (ssh hosts, authorized_keys, scripts; needs forgejo access)
 	git -C $(DOTFILES_DIR) submodule update --init --checkout -- private
 # `submodule update` checks out the pinned SHA as a detached HEAD. The overlay tracks
 # its branch and is committed to directly, so land on master -- otherwise the pull below
 # has no upstream, and any host added here would be committed onto a detached HEAD.
 	git -C $(DOTFILES_DIR)private checkout --quiet master
 	git -C $(DOTFILES_DIR)private pull --ff-only
-	@echo "Fetched. Run 'make dry-run' then 'make install' to link it into ~/.ssh."
+	@echo "Fetched. Run 'make dry-run' then 'make install' to link it into ~/.ssh and ~/.local/bin."
 
 install-ssh-private: ## Install private ssh hosts + authorized_keys (needs get-private)
 	$(INSTALL) -m ssh-private
