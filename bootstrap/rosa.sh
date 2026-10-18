@@ -42,6 +42,12 @@ seed_config() {
     fi
 }
 
+# A `git pull` of dotfiles moves the pin but not the submodule checkout, and the check below
+# reads the checkout. Without this sync, an old build would pass as current.
+if [[ -z "${ROSA_REPO:-}" ]]; then
+    (cd "$DOTFILES_DIR" && git submodule update --init vendor/sub-rosa)
+fi
+
 want="$(rosa_commit || true)"
 have="$(cat "$stamp_file" 2>/dev/null || true)"
 
@@ -54,18 +60,10 @@ then
     exit 0
 fi
 
-# An uninitialised submodule is an empty directory, not a missing one.
 if [[ ! -f "$REPO/Cargo.toml" ]]; then
-    if [[ -z "${ROSA_REPO:-}" ]]; then
-        echo "Fetching the sub-rosa submodule..."
-        (cd "$DOTFILES_DIR" && git submodule update --init vendor/sub-rosa)
-    fi
-    if [[ ! -f "$REPO/Cargo.toml" ]]; then
-        echo "No sub-rosa checkout at $REPO (no Cargo.toml)."
-        echo "Run \`make submodules\`, or set ROSA_REPO=/path/to/sub-rosa."
-        exit 1
-    fi
-    want="$(rosa_commit || true)"
+    echo "No sub-rosa checkout at $REPO (no Cargo.toml)."
+    echo "Run \`make submodules\`, or set ROSA_REPO=/path/to/sub-rosa."
+    exit 1
 fi
 
 # Same fallback the Makefile uses for `lim`: when bootstrap-rust just installed rustup in this
