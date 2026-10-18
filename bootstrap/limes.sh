@@ -85,6 +85,12 @@ EOF
 }
 write_repo_dropin
 
+# A `git pull` of dotfiles moves the pin but not the submodule checkout, and the check below
+# reads the checkout. Without this sync, an old build would pass as current.
+if [[ -z "${LIMES_REPO:-}" ]]; then
+    (cd "$DOTFILES_DIR" && git submodule update --init vendor/limes)
+fi
+
 want="$(limes_commit || true)"
 have="$(cat "$stamp_file" 2>/dev/null || true)"
 
@@ -96,18 +102,10 @@ then
     exit 0
 fi
 
-# An uninitialised submodule is an empty directory, not a missing one.
 if [[ ! -f "$REPO/Cargo.toml" ]]; then
-    if [[ -z "${LIMES_REPO:-}" ]]; then
-        echo "Fetching the limes submodule..."
-        (cd "$DOTFILES_DIR" && git submodule update --init vendor/limes)
-    fi
-    if [[ ! -f "$REPO/Cargo.toml" ]]; then
-        echo "No limes checkout at $REPO (no Cargo.toml)."
-        echo "Run \`make submodules\`, or set LIMES_REPO=/path/to/limes."
-        exit 1
-    fi
-    want="$(limes_commit || true)"
+    echo "No limes checkout at $REPO (no Cargo.toml)."
+    echo "Run \`make submodules\`, or set LIMES_REPO=/path/to/limes."
+    exit 1
 fi
 
 # Same fallback the Makefile uses for `lim`: when bootstrap-rust just installed rustup in
