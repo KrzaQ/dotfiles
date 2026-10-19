@@ -231,6 +231,18 @@ ssh() {
     return $rc
 }
 
+# cd to ranger's last directory on exit.
+if command -v ranger &>/dev/null; then
+    ranger() {
+        local tmp=$(mktemp -t ranger-cd.XXXXXX)
+        command ranger --choosedir="$tmp" "$@"
+        local rc=$? dir=$(<"$tmp")
+        rm -f -- "$tmp"
+        [[ -n "$dir" && "$dir" != "$PWD" ]] && cd -- "$dir"
+        return $rc
+    }
+fi
+
 _term_unstick_widget() { _term_unstick -a; zle reset-prompt }
 zle -N _term_unstick_widget
 bindkey '^X^R' _term_unstick_widget
