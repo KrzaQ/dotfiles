@@ -42,11 +42,12 @@ install-ssh-agent: ## Install local ssh-agent service (opt-in, prefers it over f
 	systemctl --user enable --now ssh-agent.service
 	loginctl enable-linger
 
-install-goniec-daemon: bootstrap-goniec ## Install goniec daemon user service (opt-in)
+install-goniec-daemon: bootstrap-goniec ## Install goniec daemon user service + Claude Code hooks (opt-in)
 	$(INSTALL) -m goniec-daemon
 	systemctl --user daemon-reload
 	systemctl --user enable --now goniec.service
 	loginctl enable-linger
+	@goniec=$$(command -v goniec || echo "$$HOME/.cargo/bin/goniec"); "$$goniec" install-hooks
 
 install-gh: ## Install gh config
 	$(INSTALL) -m gh
