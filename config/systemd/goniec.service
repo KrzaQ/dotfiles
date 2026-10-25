@@ -5,6 +5,7 @@ Description=goniec daemon: Zulip inboxes for the agent sessions on this host
 ExecStart=%h/.cargo/bin/goniec daemon
 Restart=on-failure
 RestartSec=5
+RestartPreventExitStatus=3
 
 [Install]
 WantedBy=default.target
