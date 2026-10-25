@@ -129,6 +129,13 @@ MODULES: list[Module] = [
         ],
     ),
     Module(
+        name="goniec-daemon",
+        default=False,
+        files=[
+            FileLink("config/systemd/goniec.service", ".config/systemd/user/goniec.service"),
+        ],
+    ),
+    Module(
         name="gh",
         files=[
             FileLink("config/gh/config.yml", ".config/gh/config.yml"),

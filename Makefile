@@ -4,7 +4,7 @@ UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
-        install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
+        install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-goniec-daemon install-gh install-fastfetch install-tmux install-limes \
         bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-goniec
 
 help: ## Show available targets
@@ -40,6 +40,12 @@ install-ssh-agent: ## Install local ssh-agent service (opt-in, prefers it over f
 	$(INSTALL) -m ssh-agent
 	systemctl --user daemon-reload
 	systemctl --user enable --now ssh-agent.service
+	loginctl enable-linger
+
+install-goniec-daemon: bootstrap-goniec ## Install goniec daemon user service (opt-in)
+	$(INSTALL) -m goniec-daemon
+	systemctl --user daemon-reload
+	systemctl --user enable --now goniec.service
 	loginctl enable-linger
 
 install-gh: ## Install gh config
