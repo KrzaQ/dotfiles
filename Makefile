@@ -5,7 +5,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
         install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-goniec
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -106,6 +106,11 @@ endif
 # `rosa serve` stay manual (they need a passphrase and a tty).
 bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) + seed config
 	bash $(DOTFILES_DIR)bootstrap/rosa.sh
+
+# Depends on bootstrap-rust: goniec is built with `cargo install`. GONIEC_REPO=<path> builds a
+# development tree instead of the submodule.
+bootstrap-goniec: bootstrap-rust ## Install/upgrade goniec (Zulip inboxes for agent sessions)
+	bash $(DOTFILES_DIR)bootstrap/goniec.sh
 
 # Machine-local targets (e.g. `push` to my mirrors). Untracked; see Makefile.local.
 -include $(DOTFILES_DIR)Makefile.local
