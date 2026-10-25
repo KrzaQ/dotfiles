@@ -19,3 +19,6 @@
 	# The pinned SHA is deliberately not maintained -- get-private tracks the
 	# branch instead -- so don't report the drift as a dirty worktree.
 	ignore = all
+[submodule "vendor/goniec"]
+	path = vendor/goniec
+	url = https://github.com/KrzaQ/goniec.git
