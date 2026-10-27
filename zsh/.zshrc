@@ -164,10 +164,6 @@ PS1='${_prompt_exitcode}'"${_prompt_badges}${_prompt_user}"'%F{242}@%f'"${_promp
 
 PS2='%F{red}%_> %f'
 
-# Not in a limes sandbox: no session bus is needed there (ephemeral, single-shell).
-if [[ -z "$LIMES_VERSION" ]] && [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]] && command -v dbus-launch &>/dev/null; then
-    eval "$(dbus-launch --sh-syntax)"
-fi
 export GPG_TTY=$(tty)
 
 # Plugins (submodules in the dotfiles repo, found via symlink resolution)
