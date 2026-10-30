@@ -60,8 +60,10 @@ mkdir -p "$(dirname "$stamp_file")"
 printf '%s\n' "$want" > "$stamp_file"
 echo "goniec installed ($want)."
 
-# A running daemon keeps the old binary until it restarts.
+# A running daemon keeps the old binary until it restarts. It finishes its running headless
+# turns first, which can take minutes, so do not wait for it.
 if command -v systemctl &>/dev/null && systemctl --user -q is-active goniec.service 2>/dev/null; then
-    systemctl --user restart goniec.service
-    echo "Restarted goniec.service."
+    systemctl --user daemon-reload
+    systemctl --user restart --no-block goniec.service
+    echo "goniec.service restarts once its running headless turns finish."
 fi

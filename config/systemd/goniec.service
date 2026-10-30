@@ -6,6 +6,8 @@ ExecStart=%h/.cargo/bin/goniec daemon
 Restart=on-failure
 RestartSec=5
 RestartPreventExitStatus=3
+KillMode=mixed
+TimeoutStopSec=960
 
 [Install]
 WantedBy=default.target
