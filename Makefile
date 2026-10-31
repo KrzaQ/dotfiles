@@ -5,7 +5,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
         install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-goniec-daemon install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-goniec
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-goniec bootstrap-pi
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -118,6 +118,10 @@ bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) 
 # development tree instead of the submodule.
 bootstrap-goniec: bootstrap-rust ## Install/upgrade goniec (Zulip inboxes for agent sessions)
 	bash $(DOTFILES_DIR)bootstrap/goniec.sh
+
+# goniec runs pi for its local-model bots. vendor/pi pins the whole npm dependency tree.
+bootstrap-pi: ## Install/upgrade pi (the pi coding agent, pinned by vendor/pi)
+	bash $(DOTFILES_DIR)bootstrap/pi.sh
 
 # Machine-local targets (e.g. `push` to my mirrors). Untracked; see Makefile.local.
 -include $(DOTFILES_DIR)Makefile.local
