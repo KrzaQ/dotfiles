@@ -36,6 +36,12 @@ make bootstrap-rust  # install the Rust toolchain (ARGS=--update to update it)
 | ssh-private | authorized_keys, hosts/ — from the private overlay, skipped when absent |
 | gh     | ~/.config/gh/config.yml |
 
+## AI tools
+
+[claude-setup](https://github.com/KrzaQ/claude-setup) installs and configures the AI
+programs: Claude Code, OpenCode, Codex, pi and goniec. This repo does not. Its goniec
+module builds with cargo, which `make bootstrap-rust` here installs.
+
 ## Private overlay
 
 Host definitions and `authorized_keys` live in a separate private repo, wired in as a

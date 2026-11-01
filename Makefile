@@ -5,7 +5,7 @@ INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
         install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-pi
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -106,11 +106,6 @@ endif
 # `rosa serve` stay manual (they need a passphrase and a tty).
 bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) + seed config
 	bash $(DOTFILES_DIR)bootstrap/rosa.sh
-
-# vendor/pi pins the whole npm dependency tree. pi-censor (vendor/pi-censor) is deployed first:
-# pi is never installed without it.
-bootstrap-pi: ## Install/upgrade pi (the pi coding agent) and deploy its pi-censor extension
-	bash $(DOTFILES_DIR)bootstrap/pi.sh
 
 # Machine-local targets (e.g. `push` to my mirrors). Untracked; see Makefile.local.
 -include $(DOTFILES_DIR)Makefile.local
