@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Installs `pi` (the pi coding agent), which goniec runs for its local-model bots.
+# Installs `pi` (the pi coding agent) with its pi-censor extension. goniec also runs pi for its
+# local-model bots.
 # vendor/pi pins the whole dependency tree with a lockfile, and `npm ci` installs exactly that
 # tree into its own directory. --ignore-scripts keeps package install scripts from running.
 
@@ -22,6 +23,20 @@ if [[ "$(printf '%s\n%s\n' "$NODE_MIN" "$node_version" | sort -V | head -n1)" !=
     echo "pi needs Node.js $NODE_MIN or newer; this machine has $node_version."
     exit 1
 fi
+
+# pi asks before no tool call; pi-censor makes interactive sessions ask. It is deployed first,
+# so a failure here stops before pi is installed. PI_CENSOR_REPO wins, so a machine where
+# pi-censor is being developed deploys that working tree instead of the pinned submodule.
+CENSOR="${PI_CENSOR_REPO:-$DOTFILES_DIR/vendor/pi-censor}"
+if [[ -z "${PI_CENSOR_REPO:-}" ]]; then
+    (cd "$DOTFILES_DIR" && git submodule update --init vendor/pi-censor)
+fi
+if [[ ! -f "$CENSOR/Makefile" ]]; then
+    echo "No pi-censor checkout at $CENSOR; pi is not installed without it."
+    echo "Run \`make submodules\`, or set PI_CENSOR_REPO=/path/to/pi-censor."
+    exit 1
+fi
+(cd "$CENSOR" && make deploy)
 
 # The stamp is a copy of the lockfile, written only after a successful install.
 stamp="$DEST/.installed-lock"

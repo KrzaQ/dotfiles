@@ -119,8 +119,9 @@ bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) 
 bootstrap-goniec: bootstrap-rust ## Install/upgrade goniec (Zulip inboxes for agent sessions)
 	bash $(DOTFILES_DIR)bootstrap/goniec.sh
 
-# goniec runs pi for its local-model bots. vendor/pi pins the whole npm dependency tree.
-bootstrap-pi: ## Install/upgrade pi (the pi coding agent, pinned by vendor/pi)
+# vendor/pi pins the whole npm dependency tree. pi-censor (vendor/pi-censor) is deployed first:
+# pi is never installed without it.
+bootstrap-pi: ## Install/upgrade pi (the pi coding agent) and deploy its pi-censor extension
 	bash $(DOTFILES_DIR)bootstrap/pi.sh
 
 # Machine-local targets (e.g. `push` to my mirrors). Untracked; see Makefile.local.
