@@ -4,8 +4,8 @@ UV := uv
 INSTALL := $(UV) run $(DOTFILES_DIR)scripts/install.py
 
 .PHONY: help install uninstall dry-run list submodules get-private \
-        install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-goniec-daemon install-gh install-fastfetch install-tmux install-limes \
-        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-goniec bootstrap-pi
+        install-zsh install-vim install-git install-ssh install-ssh-private install-bin-private install-ssh-agent install-gh install-fastfetch install-tmux install-limes \
+        bootstrap-uv bootstrap-rbenv bootstrap-rust bootstrap-limes bootstrap-rosa bootstrap-pi
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -41,13 +41,6 @@ install-ssh-agent: ## Install local ssh-agent service (opt-in, prefers it over f
 	systemctl --user daemon-reload
 	systemctl --user enable --now ssh-agent.service
 	loginctl enable-linger
-
-install-goniec-daemon: bootstrap-goniec ## Install goniec daemon user service + Claude Code hooks (opt-in)
-	$(INSTALL) -m goniec-daemon
-	systemctl --user daemon-reload
-	systemctl --user enable --now goniec.service
-	loginctl enable-linger
-	@goniec=$$(command -v goniec || echo "$$HOME/.cargo/bin/goniec"); "$$goniec" install-hooks
 
 install-gh: ## Install gh config
 	$(INSTALL) -m gh
@@ -113,11 +106,6 @@ endif
 # `rosa serve` stay manual (they need a passphrase and a tty).
 bootstrap-rosa: bootstrap-rust ## Install/upgrade rosa (sub-rosa secret broker) + seed config
 	bash $(DOTFILES_DIR)bootstrap/rosa.sh
-
-# Depends on bootstrap-rust: goniec is built with `cargo install`. GONIEC_REPO=<path> builds a
-# development tree instead of the submodule.
-bootstrap-goniec: bootstrap-rust ## Install/upgrade goniec (Zulip inboxes for agent sessions)
-	bash $(DOTFILES_DIR)bootstrap/goniec.sh
 
 # vendor/pi pins the whole npm dependency tree. pi-censor (vendor/pi-censor) is deployed first:
 # pi is never installed without it.
