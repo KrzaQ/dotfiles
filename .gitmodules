@@ -22,3 +22,6 @@
 [submodule "vendor/goniec"]
 	path = vendor/goniec
 	url = https://github.com/KrzaQ/goniec.git
+[submodule "vendor/pi-censor"]
+	path = vendor/pi-censor
+	url = https://github.com/KrzaQ/pi-censor.git
