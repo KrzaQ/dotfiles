@@ -19,6 +19,11 @@ export GTEST_COLOR=1
 # .zshenv keeps the leftmost occurrence, so the re-add is a no-op that does not reorder.
 [[ -d "$HOME/.local/bin" ]] && path+=("$HOME/.local/bin")
 
+# Repeated from .zshenv for the same reason.
+_zsh_dir=${${(%):-%x}:A:h}
+[[ -f $_zsh_dir/nvm-path.zsh ]] && source $_zsh_dir/nvm-path.zsh
+unset _zsh_dir
+
 [[ -d $HOME/.npm-global/bin ]] && export PATH=$PATH:$HOME/.npm-global/bin
 [[ -d $HOME/.bun/bin ]] && export PATH=$PATH:$HOME/.bun/bin
 [[ -d $HOME/.opencode/bin ]] && export PATH=$PATH:$HOME/.opencode/bin

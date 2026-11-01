@@ -11,3 +11,7 @@
 # owned this line. `typeset -U` keeps the entry single if something adds it again.
 typeset -U path PATH
 [[ -d "$HOME/.local/bin" ]] && path+=("$HOME/.local/bin")
+
+_zsh_dir=${${(%):-%x}:A:h}
+[[ -f $_zsh_dir/nvm-path.zsh ]] && source $_zsh_dir/nvm-path.zsh
+unset _zsh_dir
